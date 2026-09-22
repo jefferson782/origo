@@ -71,8 +71,8 @@ const MinhaEscala = () => {
 
   return (
     <AppLayout>
-      <section className="mb-6">
-        <h1 className="text-3xl font-bold text-foreground">Minha Escala</h1>
+      <section className="mb-5 sm:mb-6">
+        <h1 className="text-2xl font-bold text-foreground sm:text-3xl">Minha Escala</h1>
         <p className="text-sm text-muted-foreground">Confirme suas escalas e marque dias indisponíveis</p>
       </section>
 
@@ -85,9 +85,9 @@ const MinhaEscala = () => {
         {upcoming.map((a) => {
           const d = a.services ? new Date(a.services.service_date + "T00:00:00") : null;
           return (
-            <article key={a.id} className="bg-card rounded-2xl shadow-card border border-border p-4">
-              <div className="flex justify-between items-start mb-3">
-                <div>
+             <article key={a.id} className="rounded-lg border border-border bg-card p-4 shadow-card content-auto">
+               <div className="mb-3 flex items-start justify-between gap-3">
+                 <div className="min-w-0">
                   <p className="text-[10px] uppercase tracking-wider font-semibold text-primary mb-1">{a.departments?.name}</p>
                   <h3 className="text-lg font-bold text-foreground">{a.services?.name}</h3>
                   {statusBadge(a.status)}
@@ -105,7 +105,7 @@ const MinhaEscala = () => {
                 </div>
               )}
               {a.status !== "confirmed" && a.status !== "declined" && (
-                <div className="flex gap-2">
+                 <div className="grid grid-cols-1 gap-2 min-[360px]:grid-cols-2">
                   <Button onClick={() => setStatus(a.id, "confirmed")} className="flex-1 bg-success text-success-foreground hover:bg-success/90">
                     <Check className="w-4 h-4 mr-1.5" /> Confirmar
                   </Button>
@@ -121,21 +121,21 @@ const MinhaEscala = () => {
           );
         })}
 
-        <div className="bg-card rounded-2xl border border-border p-5 shadow-card mt-6">
+         <div className="mt-6 rounded-lg border border-border bg-card p-4 shadow-card sm:p-5">
           <h2 className="font-semibold text-foreground flex items-center gap-2 mb-3">
             <Ban className="w-4 h-4 text-primary" /> Dias indisponíveis
           </h2>
           <p className="text-xs text-muted-foreground mb-3">A escala automática não vai te incluir nesses dias.</p>
-          <form onSubmit={addUnav} className="flex gap-2 mb-4">
+           <form onSubmit={addUnav} className="mb-4 grid grid-cols-1 gap-2 sm:grid-cols-[minmax(0,1fr)_minmax(0,1fr)_auto]">
             <Input type="date" value={day} onChange={(e) => setDay(e.target.value)} required className="flex-1" />
             <Input placeholder="Motivo (opcional)" value={reason} onChange={(e) => setReason(e.target.value)} className="flex-1" />
-            <Button type="submit" size="icon" className="bg-gradient-primary text-primary-foreground"><Plus className="w-4 h-4" /></Button>
+             <Button type="submit" className="bg-gradient-primary text-primary-foreground sm:w-11" aria-label="Adicionar indisponibilidade"><Plus className="w-4 h-4" /><span className="sm:sr-only">Adicionar</span></Button>
           </form>
           <div className="space-y-2">
             {unav.length === 0 && <p className="text-sm text-muted-foreground">Nenhum dia marcado.</p>}
             {unav.map((u) => (
-              <div key={u.id} className="flex items-center justify-between bg-muted/30 rounded-lg p-2.5">
-                <div className="flex items-center gap-2">
+               <div key={u.id} className="flex items-center justify-between gap-2 rounded-lg bg-muted/30 p-2.5">
+                 <div className="flex min-w-0 flex-wrap items-center gap-2">
                   <Calendar className="w-4 h-4 text-muted-foreground" />
                   <span className="text-sm font-medium">{format(new Date(u.day + "T00:00:00"), "dd/MM/yyyy")}</span>
                   {u.reason && <span className="text-xs text-muted-foreground">— {u.reason}</span>}

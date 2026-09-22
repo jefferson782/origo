@@ -64,19 +64,16 @@ const Auth = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-soft flex items-center justify-center p-4 relative overflow-hidden">
-      <div className="absolute -top-40 -right-40 w-96 h-96 rounded-full bg-primary/20 blur-3xl animate-float" />
-      <div className="absolute -bottom-40 -left-40 w-96 h-96 rounded-full bg-primary-glow/20 blur-3xl animate-float" />
-
+    <div className="relative flex min-h-[100dvh] items-center justify-center overflow-hidden bg-gradient-soft px-3 py-6 safe-x safe-top safe-bottom sm:p-6">
       <div className="relative w-full max-w-md animate-scale-in">
-        <div className="text-center mb-8 animate-fade-in">
-          <img src={logo.url} alt="Origo — Planeje, organize e sirva" className="h-20 w-auto mx-auto mb-4 animate-float" />
+        <div className="mb-5 text-center animate-fade-in sm:mb-8">
+          <img src={logo.url} alt="Origo — Planeje, organize e sirva" className="mx-auto mb-3 h-auto w-[min(70vw,260px)] object-contain sm:mb-4" />
           <p className="text-sm text-muted-foreground mt-2 max-w-xs mx-auto">
             O ponto de partida onde cada servo encontra seu lugar para servir.
           </p>
         </div>
 
-        <div className="bg-card rounded-3xl shadow-elegant border border-border p-6 animate-slide-up">
+        <div className="rounded-lg border border-border bg-card p-4 shadow-elegant animate-slide-up min-[390px]:p-5 sm:p-6">
           <Tabs value={mode} onValueChange={(v) => setMode(v as any)}>
             <TabsList className="grid grid-cols-2 w-full mb-5">
               <TabsTrigger value="login">Entrar</TabsTrigger>
