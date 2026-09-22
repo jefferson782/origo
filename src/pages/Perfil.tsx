@@ -12,25 +12,25 @@ const Perfil = () => {
   const initial = displayName.charAt(0).toUpperCase();
   return (
     <AppLayout>
-      <div className="space-y-6 max-w-2xl mx-auto animate-fade-in">
-        <section className="bg-card rounded-2xl p-6 shadow-card border border-border flex flex-col items-center text-center animate-scale-in">
+      <div className="mx-auto max-w-2xl space-y-5 animate-fade-in sm:space-y-6">
+        <section className="flex flex-col items-center rounded-lg border border-border bg-card p-5 text-center shadow-card animate-scale-in sm:p-6">
           <div className="relative mb-4">
             <div className="w-24 h-24 rounded-full bg-gradient-primary text-primary-foreground flex items-center justify-center text-3xl font-bold shadow-elegant">
               {initial}
             </div>
-            <button className="absolute bottom-0 right-0 bg-primary text-primary-foreground p-2 rounded-full shadow-elegant active:scale-90 transition-transform">
+            <button aria-label="Editar foto" className="absolute bottom-0 right-0 flex h-11 w-11 items-center justify-center rounded-full bg-primary text-primary-foreground shadow-elegant transition-transform active:scale-90">
               <Pencil className="w-4 h-4" />
             </button>
           </div>
           <h1 className="text-2xl font-bold text-foreground">{displayName}</h1>
-          <p className="text-xs text-muted-foreground mt-1">{user?.email}</p>
+          <p className="mt-1 max-w-full break-all text-xs text-muted-foreground">{user?.email}</p>
         </section>
 
         {isSuperAdmin && (
           <Link to="/super-admin" className="block bg-gradient-primary text-primary-foreground p-4 rounded-2xl shadow-elegant hover:opacity-95 transition-opacity animate-slide-up">
             <div className="flex items-center gap-3">
               <Shield className="w-5 h-5" />
-              <div>
+               <div className="min-w-0 pr-3">
                 <p className="font-semibold">Painel Super Admin</p>
                 <p className="text-xs opacity-90">Gerencie igrejas e códigos</p>
               </div>

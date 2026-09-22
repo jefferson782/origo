@@ -133,6 +133,7 @@ All colors MUST be HSL.
   html {
     -webkit-text-size-adjust: 100%;
     scroll-behavior: smooth;
+    overflow-x: hidden;
   }
 
   body {
@@ -140,7 +141,13 @@ All colors MUST be HSL.
     -webkit-tap-highlight-color: transparent;
     overscroll-behavior-y: none;
     text-rendering: optimizeLegibility;
+    min-width: 320px;
+    overflow-x: hidden;
   }
+
+  img, svg, video, canvas { max-width: 100%; }
+
+  button, a, input, select, textarea { touch-action: manipulation; }
 
   /* Evita zoom automático do iOS ao focar campos */
   @media (max-width: 767px) {
@@ -153,7 +160,7 @@ All colors MUST be HSL.
 
   h1, h2, h3, .font-display {
     font-family: "Sora", "Inter", ui-sans-serif, system-ui, sans-serif;
-    letter-spacing: -0.02em;
+    letter-spacing: 0;
   }
 
   /* Foco visível e acessível */
@@ -187,6 +194,11 @@ All colors MUST be HSL.
 
   /* Área mínima de toque confortável */
   .touch-target { min-height: 44px; min-width: 44px; }
+
+  .content-auto {
+    content-visibility: auto;
+    contain-intrinsic-size: auto 320px;
+  }
 
   .glass {
     @apply bg-card/85 backdrop-blur-xl;
