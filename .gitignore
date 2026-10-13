@@ -12,6 +12,10 @@ dist
 dist-ssr
 *.local
 
+# Scratch files (design previews, Supabase CLI cache)
+.preview/
+supabase/.temp/
+
 # Editor directories and files
 .vscode/*
 !.vscode/extensions.json

@@ -68,7 +68,7 @@ const SuperAdmin = () => {
           <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Igrejas cadastradas</h3>
           {churches.length === 0 && <p className="text-sm text-muted-foreground">Nenhuma igreja ainda.</p>}
           {churches.map((c) => (
-            <div key={c.id} className="flex items-center justify-between gap-3 rounded-lg border border-border bg-card p-3 shadow-card transition-shadow animate-fade-in hover:shadow-elegant sm:p-4">
+            <div key={c.id} className="flex items-center justify-between gap-3 rounded-lg border border-border bg-card p-3 shadow-card transition-shadow hover:shadow-elegant sm:p-4">
               <div className="flex min-w-0 items-center gap-3">
                 <div className="w-10 h-10 rounded-xl bg-primary-soft text-primary flex items-center justify-center">
                   <ChurchIcon className="w-5 h-5" />

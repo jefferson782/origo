@@ -8,58 +8,59 @@ All colors MUST be HSL.
 
 @layer base {
   :root {
-    /* Origo — paleta navy */
-    --background: 222 40% 98%;
-    --foreground: 222 65% 12%;
+    /* Origo — paleta navy sobre fundo preto, com azul vívido de destaque */
+    --background: 222 22% 7%;
+    --foreground: 222 25% 96%;
 
-    --card: 0 0% 100%;
-    --card-foreground: 222 65% 12%;
+    --card: 222 20% 11%;
+    --card-foreground: 222 25% 96%;
 
-    --popover: 0 0% 100%;
-    --popover-foreground: 222 65% 12%;
+    --popover: 222 20% 11%;
+    --popover-foreground: 222 25% 96%;
 
-    --primary: 222 70% 15%;
-    --primary-foreground: 0 0% 100%;
-    --primary-glow: 220 60% 32%;
-    --primary-soft: 222 60% 96%;
+    --primary: 181 76% 57%;
+    --primary-foreground: 222 35% 10%;
+    --primary-glow: 181 85% 68%;
+    --primary-soft: 181 40% 16%;
 
-    --secondary: 222 35% 92%;
-    --secondary-foreground: 222 70% 20%;
+    --secondary: 222 16% 16%;
+    --secondary-foreground: 181 65% 78%;
 
-    --muted: 222 25% 96%;
-    --muted-foreground: 222 15% 45%;
+    --muted: 222 15% 14%;
+    --muted-foreground: 222 10% 65%;
 
-    --accent: 222 60% 96%;
-    --accent-foreground: 222 70% 20%;
+    --accent: 181 40% 16%;
+    --accent-foreground: 181 65% 78%;
 
-    --destructive: 0 75% 55%;
+    --destructive: 0 70% 55%;
     --destructive-foreground: 0 0% 100%;
-    --destructive-soft: 0 100% 96%;
+    --destructive-soft: 0 45% 18%;
 
-    --success: 152 60% 42%;
-    --warning: 38 92% 50%;
-    --info: 217 91% 60%;
-    --rose: 350 80% 60%;
+    --success: 152 55% 48%;
+    --warning: 38 90% 58%;
+    --info: 217 90% 65%;
+    --rose: 350 75% 65%;
 
-    --border: 222 25% 91%;
-    --input: 222 25% 91%;
-    --ring: 222 70% 15%;
+    --border: 222 15% 18%;
+    --input: 222 15% 18%;
+    --ring: 181 76% 57%;
 
     --radius: 0.85rem;
 
     --gradient-primary: linear-gradient(135deg, hsl(var(--primary)), hsl(var(--primary-glow)));
-    --gradient-soft: linear-gradient(180deg, hsl(var(--primary-soft)), hsl(0 0% 100%));
-    --shadow-card: 0 1px 2px hsl(222 30% 50% / 0.05), 0 4px 16px hsl(222 60% 20% / 0.06);
-    --shadow-elegant: 0 12px 40px -12px hsl(var(--primary) / 0.35);
+    --gradient-soft: linear-gradient(180deg, hsl(var(--primary-soft)), hsl(var(--card)));
+    --shadow-card: 0 1px 2px hsl(222 50% 2% / 0.4), 0 4px 16px hsl(222 50% 2% / 0.3);
+    --shadow-elegant: 0 0 36px hsl(var(--primary) / 0.4), 0 16px 48px -14px hsl(var(--primary) / 0.7);
+    --shadow-glow-sm: 0 0 18px hsl(var(--primary) / 0.55);
 
-    --sidebar-background: 0 0% 98%;
-    --sidebar-foreground: 240 5.3% 26.1%;
-    --sidebar-primary: 240 5.9% 10%;
-    --sidebar-primary-foreground: 0 0% 98%;
-    --sidebar-accent: 240 4.8% 95.9%;
-    --sidebar-accent-foreground: 240 5.9% 10%;
-    --sidebar-border: 220 13% 91%;
-    --sidebar-ring: 217.2 91.2% 59.8%;
+    --sidebar-background: 222 20% 9%;
+    --sidebar-foreground: 222 20% 90%;
+    --sidebar-primary: 181 76% 57%;
+    --sidebar-primary-foreground: 222 35% 10%;
+    --sidebar-accent: 181 40% 16%;
+    --sidebar-accent-foreground: 181 65% 78%;
+    --sidebar-border: 222 15% 18%;
+    --sidebar-ring: 181 76% 57%;
   }
 
   .dark {
@@ -119,7 +120,7 @@ All colors MUST be HSL.
   :root {
     /* Alturas do app shell (usadas por header, conteúdo e nav) */
     --app-header-h: 4.25rem;
-    --app-nav-h: 4.5rem;
+    --app-nav-h: 7rem;
     --safe-top: env(safe-area-inset-top, 0px);
     --safe-bottom: env(safe-area-inset-bottom, 0px);
     --safe-left: env(safe-area-inset-left, 0px);
@@ -214,6 +215,236 @@ All colors MUST be HSL.
   .stagger > *:nth-child(5) { animation-delay: 0.18s; }
   .stagger > *:nth-child(6) { animation-delay: 0.22s; }
   .stagger > *:nth-child(n + 7) { animation-delay: 0.26s; }
+}
+
+/* Tela de login — splash em tela cheia + folha deslizante */
+.auth-screen {
+  position: relative;
+  overflow: hidden;
+  min-height: 100dvh;
+  width: 100%;
+  background: #000;
+  color: hsl(var(--foreground));
+}
+@media (min-width: 640px) {
+  .auth-screen {
+    max-width: 480px;
+    min-height: calc(100dvh - 4rem);
+    margin: 2rem auto;
+    border-radius: 28px;
+  }
+}
+.auth-glow {
+  position: absolute;
+  border-radius: 999px;
+  pointer-events: none;
+  background: radial-gradient(circle, hsl(var(--primary) / 0.55), transparent 70%);
+  filter: blur(10px);
+  animation: auth-float 7s ease-in-out infinite;
+}
+@keyframes auth-float {
+  0%, 100% { transform: translate(0, 0) scale(1); }
+  50% { transform: translate(14px, -22px) scale(1.08); }
+}
+.auth-streaks {
+  position: absolute;
+  inset: -40%;
+  pointer-events: none;
+  background: repeating-linear-gradient(118deg, hsl(var(--primary) / 0) 0 46px, hsl(var(--primary) / .16) 46px 48px, hsl(var(--primary) / 0) 48px 120px);
+  animation: auth-drift 14s linear infinite;
+}
+.auth-shard {
+  position: absolute;
+  pointer-events: none;
+  background: hsl(var(--primary) / .1);
+  transform: skewX(-24deg);
+}
+@keyframes auth-drift { from { transform: translate(0,0); } to { transform: translate(-120px,60px); } }
+@keyframes auth-rise { from { opacity: 0; transform: translateY(28px); } to { opacity: 1; transform: none; } }
+@keyframes auth-pop { 0% { opacity: 0; transform: scale(.6) rotate(-8deg); } 70% { transform: scale(1.06) rotate(0); } 100% { opacity: 1; transform: none; } }
+@keyframes auth-field-in { from { opacity: 0; transform: translateY(18px); } to { opacity: 1; transform: none; } }
+
+.auth-brand {
+  position: absolute;
+  left: 0; right: 0; top: 34%;
+  display: flex; flex-direction: column; align-items: center; gap: 18px;
+  transition: top .7s cubic-bezier(.22,1,.36,1), transform .7s cubic-bezier(.22,1,.36,1);
+}
+.auth-brand.up { top: 9%; transform: scale(.68); }
+.auth-logo-img {
+  display: block;
+  width: min(80vw, 320px);
+  height: auto;
+  filter: brightness(0) invert(1);
+  animation: auth-pop .9s cubic-bezier(.22,1,.36,1) both;
+}
+
+.auth-cta {
+  position: absolute;
+  left: 28px; right: 28px; bottom: 56px;
+  display: flex; flex-direction: column; align-items: center; gap: 14px;
+  animation: auth-rise .7s .45s both;
+  transition: opacity .35s, transform .45s;
+}
+.auth-cta.gone { opacity: 0; transform: translateY(40px); pointer-events: none; }
+
+.auth-btn-light {
+  width: 100%; min-height: 56px; border: 0; border-radius: 999px;
+  background: var(--gradient-primary); color: hsl(var(--primary-foreground));
+  font: 600 17px "Inter", sans-serif; cursor: pointer;
+  box-shadow: var(--shadow-glow-sm), 0 10px 30px hsl(var(--primary) / 0.35);
+  transition: transform .15s, box-shadow .15s;
+}
+.auth-btn-light:hover { transform: translateY(-2px); box-shadow: 0 0 30px hsl(var(--primary) / 0.7), 0 10px 30px hsl(var(--primary) / 0.35); }
+.auth-btn-light:active { transform: scale(.97); }
+
+.auth-sheet {
+  position: absolute; left: 0; right: 0; bottom: 0;
+  height: 86dvh; max-height: 680px;
+  background: hsl(var(--card));
+  border-radius: 28px 28px 0 0;
+  box-shadow: 0 -12px 40px hsl(var(--primary) / 0.25);
+  transform: translateY(105%);
+  transition: transform .7s cubic-bezier(.22,1,.36,1);
+  display: flex; flex-direction: column;
+  padding: 12px 28px 28px;
+  box-sizing: border-box;
+  overflow-y: auto;
+}
+.auth-sheet.open { transform: translateY(0); }
+.auth-sheet.open .auth-f { animation: auth-field-in .55s cubic-bezier(.22,1,.36,1) both; }
+.auth-sheet.open .auth-f1 { animation-delay: .22s; }
+.auth-sheet.open .auth-f2 { animation-delay: .28s; }
+.auth-sheet.open .auth-f3 { animation-delay: .34s; }
+.auth-sheet.open .auth-f4 { animation-delay: .4s; }
+.auth-sheet.open .auth-f5 { animation-delay: .46s; }
+.auth-sheet.open .auth-f6 { animation-delay: .52s; }
+
+.auth-handle { align-self: center; width: 48px; height: 40px; border: 0; background: transparent; cursor: pointer; display: flex; align-items: center; justify-content: center; }
+
+.auth-field {
+  display: flex; align-items: center; gap: 10px; height: 52px;
+  border: 1.5px solid hsl(var(--border)); border-radius: 999px; padding: 0 16px;
+  transition: border-color .2s, box-shadow .2s;
+}
+.auth-field:focus-within { border-color: hsl(var(--primary)); box-shadow: 0 0 0 4px hsl(var(--ring) / 0.15); }
+.auth-field input {
+  flex: 1; min-width: 0; border: 0; outline: 0; background: transparent;
+  font: 400 15px "Inter", sans-serif; color: hsl(var(--foreground));
+}
+.auth-field input::placeholder { color: hsl(var(--muted-foreground)); }
+
+.auth-eye {
+  border: 0; background: transparent; width: 40px; height: 40px; margin-right: -10px;
+  display: flex; align-items: center; justify-content: center;
+  color: hsl(var(--muted-foreground)); cursor: pointer; border-radius: 50%;
+}
+.auth-eye:hover { background: hsl(var(--muted)); }
+
+.auth-btn-primary {
+  width: 100%; min-height: 54px; border: 0; border-radius: 999px;
+  background: hsl(var(--primary)); color: hsl(var(--primary-foreground));
+  font: 600 16px "Inter", sans-serif; cursor: pointer;
+  box-shadow: var(--shadow-glow-sm), 0 10px 24px hsl(var(--primary) / 0.3);
+  transition: transform .15s, opacity .2s, box-shadow .2s;
+}
+.auth-btn-primary:hover { opacity: .92; transform: translateY(-2px); box-shadow: 0 0 26px hsl(var(--primary) / 0.7), 0 10px 24px hsl(var(--primary) / 0.3); }
+.auth-btn-primary:active { transform: scale(.97); }
+.auth-btn-primary:disabled { opacity: .6; cursor: not-allowed; transform: none; }
+
+.auth-check { width: 17px; height: 17px; accent-color: hsl(var(--primary)); margin: 0; }
+
+/* Cartão "próximo compromisso" — faixa de destaque com o departamento,
+   espiando por baixo do painel escuro, igual ao cartão de referência. */
+@keyframes commit-in { from { opacity: 0; transform: translateY(20px) scale(.98); } to { opacity: 1; transform: none; } }
+@keyframes commit-band-in { from { opacity: 0; transform: translateY(-14px); } to { opacity: 1; transform: none; } }
+@keyframes commit-pulse {
+  0% { box-shadow: 0 0 0 0 hsl(var(--commit-dot, var(--success)) / .55); }
+  70% { box-shadow: 0 0 0 7px hsl(var(--commit-dot, var(--success)) / 0); }
+  100% { box-shadow: 0 0 0 0 hsl(var(--commit-dot, var(--success)) / 0); }
+}
+@keyframes commit-wiggle {
+  0%, 100% { transform: rotate(0); }
+  20% { transform: rotate(-12deg); }
+  40% { transform: rotate(9deg); }
+  60% { transform: rotate(-5deg); }
+}
+
+.commit-wrap { position: relative; animation: commit-in .7s cubic-bezier(.22,1,.36,1) both; }
+.commit-band {
+  position: absolute; left: 0; right: 0; bottom: 0; height: 56px;
+  border-radius: 0 0 calc(var(--radius) + 4px) calc(var(--radius) + 4px);
+  background: var(--gradient-primary);
+  box-shadow: 0 0 26px hsl(var(--primary) / 0.4), 0 18px 36px hsl(var(--primary) / 0.4);
+  display: flex; align-items: flex-end; justify-content: center; padding-bottom: 10px;
+  animation: commit-band-in .6s .3s cubic-bezier(.22,1,.36,1) both;
+}
+.commit-band-icon { animation: commit-wiggle 2.6s 1.1s ease-in-out infinite; transform-origin: 50% 50%; }
+.commit-panel {
+  position: relative; margin-bottom: 18px;
+  background: hsl(var(--card)); border: 1px solid hsl(var(--border));
+  border-radius: calc(var(--radius) + 4px); padding: 18px 18px 20px;
+  box-shadow: 0 14px 32px hsl(0 0% 0% / 0.35);
+}
+.commit-status-row { display: flex; align-items: center; justify-content: space-between; font-size: 12.5px; font-weight: 600; color: hsl(var(--muted-foreground)); }
+.commit-dot { width: 8px; height: 8px; border-radius: 999px; background: hsl(var(--commit-dot, var(--success))); animation: commit-pulse 2s infinite; }
+.commit-avatar { transition: transform .4s cubic-bezier(.22,1,.36,1); }
+.commit-avatar:hover { transform: rotate(-6deg) scale(1.06); }
+.commit-btn {
+  display: flex; align-items: center; justify-content: center; gap: 8px;
+  min-height: 46px; padding: 0 14px; border: 0; border-radius: 999px;
+  font: 700 13.5px "Inter", sans-serif; cursor: pointer;
+  background: hsl(var(--secondary)); color: hsl(var(--secondary-foreground));
+  transition: background .2s, transform .15s, color .2s;
+}
+.commit-btn:hover { transform: translateY(-2px); }
+.commit-btn:active { transform: scale(.97); }
+.commit-btn.commit-btn-primary { background: var(--gradient-primary); color: hsl(var(--primary-foreground)); box-shadow: var(--shadow-glow-sm); }
+.commit-btn.commit-btn-done-ok { background: hsl(var(--success)); color: hsl(var(--success-foreground, 0 0% 100%)); }
+.commit-btn.commit-btn-done-no { background: hsl(var(--muted)); color: hsl(var(--muted-foreground)); }
+.commit-btn:disabled { opacity: .65; cursor: default; transform: none; }
+
+/* Menu inferior — barra flutuante com indicador deslizante + faixa da aba atual */
+@keyframes bnav-in { from { opacity: 0; transform: translateY(40px); } to { opacity: 1; transform: none; } }
+@keyframes bnav-bounce { 0% { transform: scale(.6); } 60% { transform: scale(1.18); } 100% { transform: scale(1); } }
+
+.bnav-wrap {
+  position: fixed; left: 0; right: 0; bottom: 0; z-index: 40;
+  display: flex; justify-content: center; pointer-events: none;
+  padding: 0 14px calc(var(--safe-bottom) + 12px);
+  animation: bnav-in .6s .1s cubic-bezier(.22,1,.36,1) both;
+}
+.bnav-shell { pointer-events: auto; width: 100%; max-width: 420px; }
+.bnav-bar {
+  position: relative; background: hsl(var(--card)); border: 1px solid hsl(var(--border));
+  border-radius: 24px 24px 0 0; padding: 6px; box-shadow: 0 18px 40px rgba(0,0,0,.5);
+}
+.bnav-indicator {
+  position: absolute; top: 6px; left: 6px; height: 52px; border-radius: 16px;
+  background: hsl(var(--secondary)); transition: transform .5s cubic-bezier(.34,1.4,.5,1);
+}
+.bnav-indicator::after {
+  content: ""; position: absolute; left: 50%; bottom: 5px; width: 16px; height: 3px;
+  margin-left: -8px; border-radius: 3px; background: hsl(var(--primary));
+  box-shadow: 0 0 10px 1px hsl(var(--primary) / 0.9);
+}
+.bnav-tabs { position: relative; z-index: 1; display: grid; }
+.bnav-tab {
+  position: relative; z-index: 1; height: 52px; display: flex; flex-direction: column;
+  align-items: center; justify-content: center; gap: 3px; border-radius: 16px;
+  color: hsl(var(--muted-foreground)); font: 700 10px "Inter", sans-serif; text-decoration: none;
+  transition: color .25s;
+}
+.bnav-tab.on { color: hsl(var(--foreground)); }
+.bnav-tab.on .bnav-icon {
+  color: hsl(var(--primary)); animation: bnav-bounce .45s cubic-bezier(.22,1,.36,1);
+  filter: drop-shadow(0 0 6px hsl(var(--primary) / 0.75));
+}
+.bnav-band {
+  background: var(--gradient-primary); border-radius: 0 0 24px 24px;
+  padding: 9px 16px 8px; display: flex; justify-content: center; align-items: center; gap: 7px;
+  font-size: 11.5px; font-weight: 700; color: hsl(var(--primary-foreground));
+  box-shadow: 0 0 24px hsl(var(--primary) / 0.45), 0 16px 30px hsl(var(--primary) / 0.35);
 }
 
 /* Respeita quem prefere menos animações */

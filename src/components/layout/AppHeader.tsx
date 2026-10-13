@@ -6,7 +6,6 @@ import { useAuth } from "@/hooks/useAuth";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Button } from "@/components/ui/button";
 import { EmptyState } from "@/components/ui/empty-state";
-import logo from "@/assets/origo-logo.png.asset.json";
 
 interface Notif {
   id: string;
@@ -85,9 +84,9 @@ const AppHeader = () => {
       >
         <Link to="/" className="tap flex min-w-0 items-center" aria-label="Origo — início">
           <img
-            src={logo.url}
+            src="/origo-logo.png"
             alt="Origo"
-            className="h-[clamp(2.25rem,7vw,2.75rem)] w-auto max-w-[min(55vw,220px)] object-contain object-left"
+            className="h-[clamp(2.25rem,7vw,2.75rem)] w-auto max-w-[min(55vw,220px)] object-contain object-left [filter:brightness(0)_invert(1)]"
           />
         </Link>
 
