@@ -16,8 +16,31 @@ import { toast } from "sonner";
 import {
   Sparkles, Plus, Calendar as CalendarIcon, Users, Building2, Trash2,
   UserPlus, Wand2, Hand, CalendarRange, Repeat, Shield, UserCog, Music, Megaphone, Send,
+  HandHeart, Baby, Video,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
+
+function deptVisual(name: string, idx: number) {
+  const n = name.toLowerCase();
+  const Icon = n.includes("lou")
+    ? Music
+    : n.includes("míd") || n.includes("mid") || n.includes("comunic")
+    ? Video
+    : n.includes("diacon") || n.includes("recep") || n.includes("acolh")
+    ? HandHeart
+    : n.includes("infant") || n.includes("kids") || n.includes("crian")
+    ? Baby
+    : Users;
+  const palette = [
+    { text: "text-primary", bg: "bg-primary-soft" },
+    { text: "text-success", bg: "bg-success/10" },
+    { text: "text-warning", bg: "bg-warning/10" },
+    { text: "text-rose", bg: "bg-rose/10" },
+    { text: "text-info", bg: "bg-info/10" },
+  ];
+  const { text, bg } = palette[idx % palette.length];
+  return { Icon, text, bg };
+}
 
 interface Department { id: string; name: string; }
 interface Service { id: string; name: string; service_date: string; service_time: string | null; }
@@ -49,7 +72,7 @@ const Gerenciar = () => {
   const [svcTime, setSvcTime] = useState("");
 
   const [recName, setRecName] = useState("");
-  const [recWeekday, setRecWeekday] = useState<string>("0");
+  const [recWeekdays, setRecWeekdays] = useState<number[]>([]);
   const [recTime, setRecTime] = useState("");
 
   const [selService, setSelService] = useState<string>("");
@@ -215,12 +238,14 @@ const Gerenciar = () => {
 
   const addRecurring = async () => {
     if (!recName || !churchId) return;
-    const { error } = await (supabase.from("recurring_services" as any) as any).insert({
-      church_id: churchId, name: recName, weekday: Number(recWeekday), service_time: recTime || null,
-    });
+    if (recWeekdays.length === 0) return toast.error("Selecione pelo menos um dia da semana");
+    const rows = recWeekdays.map((weekday) => ({
+      church_id: churchId, name: recName, weekday, service_time: recTime || null,
+    }));
+    const { error } = await (supabase.from("recurring_services" as any) as any).insert(rows);
     if (error) return toast.error(error.message);
-    setRecName(""); setRecTime("");
-    toast.success("Culto fixo criado");
+    setRecName(""); setRecTime(""); setRecWeekdays([]);
+    toast.success(`Culto fixo criado em ${rows.length} dia${rows.length > 1 ? "s" : ""}`);
     loadAll(churchId);
   };
 
@@ -362,23 +387,23 @@ const Gerenciar = () => {
       </section>
 
       <Tabs defaultValue="manual" className="animate-fade-in">
-        <TabsList className="grid grid-cols-6 w-full mb-4 h-auto">
-          <TabsTrigger value="manual" className="gap-1.5 py-2">
+        <TabsList className="flex w-full justify-start gap-2 overflow-x-auto bg-transparent p-0 mb-5 h-auto scrollbar-none">
+          <TabsTrigger value="manual" className="gap-1.5 rounded-full border border-border bg-card px-4 py-2 text-muted-foreground data-[state=active]:bg-foreground data-[state=active]:text-background data-[state=active]:border-foreground data-[state=active]:shadow-none shrink-0">
             <Hand className="w-4 h-4" /> Manual
           </TabsTrigger>
-          <TabsTrigger value="fixos" className="gap-1.5 py-2">
+          <TabsTrigger value="fixos" className="gap-1.5 rounded-full border border-border bg-card px-4 py-2 text-muted-foreground data-[state=active]:bg-foreground data-[state=active]:text-background data-[state=active]:border-foreground data-[state=active]:shadow-none shrink-0">
             <Repeat className="w-4 h-4" /> Fixos
           </TabsTrigger>
-          <TabsTrigger value="pessoas" className="gap-1.5 py-2">
+          <TabsTrigger value="pessoas" className="gap-1.5 rounded-full border border-border bg-card px-4 py-2 text-muted-foreground data-[state=active]:bg-foreground data-[state=active]:text-background data-[state=active]:border-foreground data-[state=active]:shadow-none shrink-0">
             <UserCog className="w-4 h-4" /> Pessoas
           </TabsTrigger>
-          <TabsTrigger value="auto" className="gap-1.5 py-2">
+          <TabsTrigger value="auto" className="gap-1.5 rounded-full border border-border bg-card px-4 py-2 text-muted-foreground data-[state=active]:bg-foreground data-[state=active]:text-background data-[state=active]:border-foreground data-[state=active]:shadow-none shrink-0">
             <Wand2 className="w-4 h-4" /> Automática
           </TabsTrigger>
-          <TabsTrigger value="cal" className="gap-1.5 py-2">
+          <TabsTrigger value="cal" className="gap-1.5 rounded-full border border-border bg-card px-4 py-2 text-muted-foreground data-[state=active]:bg-foreground data-[state=active]:text-background data-[state=active]:border-foreground data-[state=active]:shadow-none shrink-0">
             <CalendarRange className="w-4 h-4" /> Calendário
           </TabsTrigger>
-          <TabsTrigger value="avisos" className="gap-1.5 py-2">
+          <TabsTrigger value="avisos" className="gap-1.5 rounded-full border border-border bg-card px-4 py-2 text-muted-foreground data-[state=active]:bg-foreground data-[state=active]:text-background data-[state=active]:border-foreground data-[state=active]:shadow-none shrink-0">
             <Megaphone className="w-4 h-4" /> Avisos
           </TabsTrigger>
         </TabsList>
@@ -386,24 +411,50 @@ const Gerenciar = () => {
         {/* MANUAL */}
         <TabsContent value="manual" className="space-y-6">
           <Card className="p-5 animate-slide-up">
-            <div className="flex items-center gap-2 mb-4">
-              <Building2 className="w-5 h-5 text-primary" />
-              <h2 className="font-bold text-lg">Departamentos</h2>
+            <div className="flex items-center justify-between mb-4">
+              <div className="flex items-center gap-2">
+                <Building2 className="w-5 h-5 text-primary" />
+                <h2 className="font-bold text-lg">Departamentos</h2>
+              </div>
+              <span className="text-xs text-muted-foreground">
+                {departments.length} equipe{departments.length !== 1 ? "s" : ""}
+              </span>
             </div>
-            <div className="flex gap-2 mb-4">
-              <Input placeholder="Nome do departamento" value={deptName} onChange={(e) => setDeptName(e.target.value)} />
-              <Button onClick={addDept}><Plus className="w-4 h-4" /></Button>
-            </div>
-            <div className="flex flex-wrap gap-2">
-              {departments.map(d => (
-                <Badge key={d.id} variant="secondary" className="text-sm py-1.5 pl-3 pr-1.5 gap-2">
-                  {d.name}
-                  <button onClick={() => removeDept(d.id)} className="hover:text-destructive">
-                    <Trash2 className="w-3.5 h-3.5" />
-                  </button>
-                </Badge>
-              ))}
-              {departments.length === 0 && <p className="text-xs text-muted-foreground">Nenhum departamento ainda</p>}
+            <div className="flex gap-3 overflow-x-auto pb-1 -mx-1 px-1 scrollbar-none">
+              {departments.map((d, idx) => {
+                const { Icon, text, bg } = deptVisual(d.name, idx);
+                const count = deptMembers.filter((m) => m.department_id === d.id).length;
+                return (
+                  <div key={d.id} className="relative shrink-0 w-[150px] rounded-2xl border border-border bg-card p-4 flex flex-col gap-3">
+                    <button
+                      onClick={() => removeDept(d.id)}
+                      aria-label={`Excluir ${d.name}`}
+                      className="absolute top-2 right-2 text-muted-foreground hover:text-destructive"
+                    >
+                      <Trash2 className="w-3.5 h-3.5" />
+                    </button>
+                    <div className={`w-11 h-11 rounded-xl ${bg} ${text} flex items-center justify-center`}>
+                      <Icon className="w-5 h-5" />
+                    </div>
+                    <div>
+                      <p className="font-semibold text-sm leading-tight">{d.name}</p>
+                      <p className="text-xs text-muted-foreground mt-0.5">{count} servo{count !== 1 ? "s" : ""}</p>
+                    </div>
+                  </div>
+                );
+              })}
+              <div className="shrink-0 w-[150px] rounded-2xl border border-dashed border-border p-4 flex flex-col justify-between gap-3">
+                <Input
+                  placeholder="Nome"
+                  value={deptName}
+                  onChange={(e) => setDeptName(e.target.value)}
+                  onKeyDown={(e) => e.key === "Enter" && addDept()}
+                  className="h-9 text-sm"
+                />
+                <Button onClick={addDept} size="sm" variant="secondary" className="w-full">
+                  <Plus className="w-3.5 h-3.5 mr-1" /> Criar
+                </Button>
+              </div>
             </div>
           </Card>
 
@@ -418,20 +469,38 @@ const Gerenciar = () => {
               <Input type="time" value={svcTime} onChange={(e) => setSvcTime(e.target.value)} />
             </div>
             <Button onClick={addService} className="mb-4 w-full sm:w-auto"><Plus className="w-4 h-4 mr-2" /> Adicionar culto</Button>
-            <div className="space-y-2">
-              {services.map(s => (
-                <div key={s.id} className="flex items-center justify-between p-3 rounded-xl border bg-card">
-                  <div>
-                    <p className="font-semibold">{s.name}</p>
-                    <p className="text-xs text-muted-foreground">
-                      {new Date(s.service_date + "T00:00").toLocaleDateString("pt-BR")} {s.service_time?.slice(0,5)}
-                    </p>
+            <div className="space-y-3">
+              {services.map(s => {
+                const todayIso = new Date().toISOString().slice(0, 10);
+                const d = new Date(s.service_date + "T00:00");
+                const scaled = assignments.filter((a) => a.service_id === s.id).length;
+                return (
+                  <div key={s.id} className="flex gap-3">
+                    <div className="w-11 shrink-0 text-center pt-2.5">
+                      <p className="text-[10px] font-semibold uppercase text-muted-foreground">
+                        {d.toLocaleDateString("pt-BR", { weekday: "short" }).replace(".", "")}
+                      </p>
+                      <p className="text-xl font-extrabold leading-none tabular-nums">{d.getDate()}</p>
+                    </div>
+                    <div className="flex-1 min-w-0 flex items-center justify-between gap-3 rounded-2xl border border-border bg-card p-4">
+                      <div className="min-w-0">
+                        <div className="flex items-center gap-2 flex-wrap">
+                          <p className="font-semibold truncate">{s.name}</p>
+                          {s.service_date === todayIso && (
+                            <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-primary-soft text-primary shrink-0">Hoje</span>
+                          )}
+                        </div>
+                        <p className="text-xs text-muted-foreground mt-0.5">
+                          {s.service_time?.slice(0, 5) ?? "Sem horário"} · {scaled === 0 ? "Ninguém escalado ainda" : `${scaled} pessoa${scaled !== 1 ? "s" : ""} escalada${scaled !== 1 ? "s" : ""}`}
+                        </p>
+                      </div>
+                      <button onClick={() => removeService(s.id)} className="shrink-0 text-muted-foreground hover:text-destructive">
+                        <Trash2 className="w-4 h-4" />
+                      </button>
+                    </div>
                   </div>
-                  <button onClick={() => removeService(s.id)} className="text-muted-foreground hover:text-destructive">
-                    <Trash2 className="w-4 h-4" />
-                  </button>
-                </div>
-              ))}
+                );
+              })}
               {services.length === 0 && <p className="text-xs text-muted-foreground">Nenhum culto cadastrado</p>}
             </div>
           </Card>
@@ -670,20 +739,35 @@ const Gerenciar = () => {
               <h2 className="font-bold text-lg">Cultos fixos da semana</h2>
             </div>
             <p className="text-xs text-muted-foreground mb-4">
-              Defina os cultos que se repetem toda semana. Eventos pontuais devem ser criados na aba Manual.
+              Defina os cultos que se repetem toda semana — pode marcar mais de um dia (ex: terça e quinta) de uma vez.
+              Eventos pontuais devem ser criados na aba Manual.
               Use “Criar cultos fixos do mês” na aba Automática (ou ao gerar a escala) para materializá-los.
             </p>
-            <div className="grid grid-cols-1 sm:grid-cols-4 gap-2 mb-3">
-              <Input placeholder="Nome (Culto da Noite)" value={recName} onChange={(e) => setRecName(e.target.value)} className="sm:col-span-2" />
-              <Select value={recWeekday} onValueChange={setRecWeekday}>
-                <SelectTrigger><SelectValue /></SelectTrigger>
-                <SelectContent>
-                  {["Domingo","Segunda","Terça","Quarta","Quinta","Sexta","Sábado"].map((n,i) => (
-                    <SelectItem key={i} value={String(i)}>{n}</SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 mb-3">
+              <Input placeholder="Nome (Culto da Noite)" value={recName} onChange={(e) => setRecName(e.target.value)} />
               <Input type="time" value={recTime} onChange={(e) => setRecTime(e.target.value)} />
+            </div>
+            <div className="mb-3">
+              <Label className="text-xs mb-1.5 block">Dias da semana</Label>
+              <div className="flex flex-wrap gap-1.5">
+                {["Dom","Seg","Ter","Qua","Qui","Sex","Sáb"].map((n, i) => {
+                  const active = recWeekdays.includes(i);
+                  return (
+                    <button
+                      key={i}
+                      type="button"
+                      onClick={() => setRecWeekdays((prev) => active ? prev.filter((d) => d !== i) : [...prev, i].sort())}
+                      className={cn(
+                        "h-9 min-w-[44px] px-2 rounded-lg text-xs font-semibold border transition-colors",
+                        active ? "bg-primary text-primary-foreground border-primary" : "bg-card text-muted-foreground border-border hover:bg-muted"
+                      )}
+                      aria-pressed={active}
+                    >
+                      {n}
+                    </button>
+                  );
+                })}
+              </div>
             </div>
             <Button onClick={addRecurring} className="mb-4 w-full sm:w-auto">
               <Plus className="w-4 h-4 mr-2" /> Adicionar fixo
