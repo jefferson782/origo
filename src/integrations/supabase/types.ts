@@ -10,7 +10,7 @@ export type Database = {
   // Allows to automatically instantiate createClient with right options
   // instead of createClient<Database, { PostgrestVersion: 'XX' }>(URL, KEY)
   __InternalSupabase: {
-    PostgrestVersion: "14.5"
+    PostgrestVersion: "14.18"
   }
   public: {
     Tables: {
@@ -102,6 +102,71 @@ export type Database = {
         Relationships: [
           {
             foreignKeyName: "department_members_department_id_fkey"
+            columns: ["department_id"]
+            isOneToOne: false
+            referencedRelation: "departments"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      department_member_skills: {
+        Row: {
+          created_at: string
+          department_member_id: string
+          department_role_id: string
+          id: string
+        }
+        Insert: {
+          created_at?: string
+          department_member_id: string
+          department_role_id: string
+          id?: string
+        }
+        Update: {
+          created_at?: string
+          department_member_id?: string
+          department_role_id?: string
+          id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "department_member_skills_department_member_id_fkey"
+            columns: ["department_member_id"]
+            isOneToOne: false
+            referencedRelation: "department_members"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "department_member_skills_department_role_id_fkey"
+            columns: ["department_role_id"]
+            isOneToOne: false
+            referencedRelation: "department_roles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      department_roles: {
+        Row: {
+          created_at: string
+          department_id: string
+          id: string
+          name: string
+        }
+        Insert: {
+          created_at?: string
+          department_id: string
+          id?: string
+          name: string
+        }
+        Update: {
+          created_at?: string
+          department_id?: string
+          id?: string
+          name?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "department_roles_department_id_fkey"
             columns: ["department_id"]
             isOneToOne: false
             referencedRelation: "departments"
@@ -222,7 +287,15 @@ export type Database = {
           service_time?: string | null
           weekday?: number
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "recurring_services_church_id_fkey"
+            columns: ["church_id"]
+            isOneToOne: false
+            referencedRelation: "churches"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       service_songs: {
         Row: {

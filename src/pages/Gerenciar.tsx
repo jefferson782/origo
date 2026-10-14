@@ -10,13 +10,17 @@ import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Calendar } from "@/components/ui/calendar";
+import {
+  Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter,
+} from "@/components/ui/dialog";
+import { Checkbox } from "@/components/ui/checkbox";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { toast } from "sonner";
 import {
   Sparkles, Plus, Calendar as CalendarIcon, Users, Building2, Trash2,
   UserPlus, Wand2, Hand, CalendarRange, Repeat, Shield, UserCog, Music, Megaphone, Send,
-  HandHeart, Baby, Video,
+  HandHeart, Baby, Video, ChevronRight,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -52,6 +56,8 @@ interface Recurring { id: string; name: string; weekday: number; service_time: s
 interface DeptMember { id: string; department_id: string; user_id: string; }
 interface RoleRow { id: string; user_id: string; role: string; church_id: string | null; department_id: string | null; }
 interface Song { id: string; service_id: string; title: string; artist: string | null; song_key: string | null; link: string | null; position: number; }
+interface DeptRole { id: string; department_id: string; name: string; }
+interface DeptMemberSkill { id: string; department_member_id: string; department_role_id: string; }
 
 const Gerenciar = () => {
   const { user, canManage } = useAuth();
@@ -64,7 +70,10 @@ const Gerenciar = () => {
   const [deptMembers, setDeptMembers] = useState<DeptMember[]>([]);
   const [roleRows, setRoleRows] = useState<RoleRow[]>([]);
   const [songs, setSongs] = useState<Song[]>([]);
+  const [deptRoles, setDeptRoles] = useState<DeptRole[]>([]);
+  const [memberSkills, setMemberSkills] = useState<DeptMemberSkill[]>([]);
   const [loading, setLoading] = useState(true);
+  const [managingMember, setManagingMember] = useState<DeptMember | null>(null);
 
   const [deptName, setDeptName] = useState("");
   const [svcName, setSvcName] = useState("");
@@ -91,6 +100,8 @@ const Gerenciar = () => {
   const [memberUser, setMemberUser] = useState<string>("");
   const [leaderDept, setLeaderDept] = useState<string>("");
   const [leaderUser, setLeaderUser] = useState<string>("");
+  const [roleDept, setRoleDept] = useState<string>("");
+  const [roleName, setRoleName] = useState("");
 
   const [songService, setSongService] = useState<string>("");
   const [songTitle, setSongTitle] = useState("");
@@ -123,7 +134,7 @@ const Gerenciar = () => {
   };
 
   const loadAll = async (cid: string) => {
-    const [d, s, p, a, r, dm, rr, sg] = await Promise.all([
+    const [d, s, p, a, r, dm, rr, sg, dr, ms] = await Promise.all([
       supabase.from("departments").select("*").eq("church_id", cid).order("name"),
       supabase.from("services").select("*").eq("church_id", cid).order("service_date"),
       supabase.from("profiles").select("id, full_name").eq("church_id", cid),
@@ -132,6 +143,8 @@ const Gerenciar = () => {
       supabase.from("department_members" as any).select("*"),
       supabase.from("user_roles").select("id, user_id, role, church_id, department_id").eq("church_id", cid),
       supabase.from("service_songs" as any).select("*").order("position"),
+      supabase.from("department_roles").select("*").order("name"),
+      supabase.from("department_member_skills").select("*"),
     ]);
     setDepartments(d.data ?? []);
     setServices(s.data ?? []);
@@ -141,6 +154,8 @@ const Gerenciar = () => {
     setDeptMembers(((dm as any).data ?? []) as DeptMember[]);
     setRoleRows((rr.data ?? []) as RoleRow[]);
     setSongs(((sg as any).data ?? []) as Song[]);
+    setDeptRoles((dr.data ?? []) as DeptRole[]);
+    setMemberSkills((ms.data ?? []) as DeptMemberSkill[]);
   };
 
   useEffect(() => {
@@ -167,20 +182,59 @@ const Gerenciar = () => {
     return m;
   }, [departments]);
 
-  const usersTakenInService = useMemo(() => {
+  const serviceDateMap = useMemo(() => {
+    const m = new Map<string, string>();
+    services.forEach(s => m.set(s.id, s.service_date));
+    return m;
+  }, [services]);
+
+  // data do culto -> conjunto de pessoas já escaladas nessa data, em qualquer departamento
+  const usersTakenOnDate = useMemo(() => {
     const m = new Map<string, Set<string>>();
     assignments.forEach(a => {
-      if (!m.has(a.service_id)) m.set(a.service_id, new Set());
-      m.get(a.service_id)!.add(a.user_id);
+      const date = serviceDateMap.get(a.service_id);
+      if (!date) return;
+      if (!m.has(date)) m.set(date, new Set());
+      m.get(date)!.add(a.user_id);
     });
     return m;
-  }, [assignments]);
+  }, [assignments, serviceDateMap]);
 
+  // department_member.id -> conjunto de department_role.id que a pessoa sabe fazer
+  const skillsByMember = useMemo(() => {
+    const m = new Map<string, Set<string>>();
+    memberSkills.forEach(ms => {
+      if (!m.has(ms.department_member_id)) m.set(ms.department_member_id, new Set());
+      m.get(ms.department_member_id)!.add(ms.department_role_id);
+    });
+    return m;
+  }, [memberSkills]);
+
+  const selDeptRoles = useMemo(() => deptRoles.filter(r => r.department_id === selDept), [deptRoles, selDept]);
+
+  // só membros do departamento escolhido, sem conflito de data, e (se o depto tem funções)
+  // só quem já tem pelo menos uma função marcada
   const availableUsersForSelService = useMemo(() => {
-    if (!selService) return profiles;
-    const taken = usersTakenInService.get(selService) ?? new Set();
-    return profiles.filter(p => !taken.has(p.id));
-  }, [selService, profiles, usersTakenInService]);
+    if (!selDept) return [];
+    const memberRows = deptMembers.filter(dm => dm.department_id === selDept);
+    const selDate = selService ? serviceDateMap.get(selService) : undefined;
+    const takenOnDate = selDate ? (usersTakenOnDate.get(selDate) ?? new Set<string>()) : new Set<string>();
+    const deptHasRoles = selDeptRoles.length > 0;
+    return memberRows
+      .filter(dm => !takenOnDate.has(dm.user_id))
+      .filter(dm => !deptHasRoles || (skillsByMember.get(dm.id)?.size ?? 0) > 0)
+      .map(dm => ({ dm, profile: profiles.find(p => p.id === dm.user_id) }))
+      .filter((x): x is { dm: DeptMember; profile: Profile } => !!x.profile);
+  }, [selDept, selService, deptMembers, serviceDateMap, usersTakenOnDate, selDeptRoles, skillsByMember, profiles]);
+
+  // funções do departamento que o voluntário escolhido realmente sabe fazer
+  const selUserRoleOptions = useMemo(() => {
+    if (!selDept || !selUser) return [];
+    const dm = deptMembers.find(d => d.department_id === selDept && d.user_id === selUser);
+    if (!dm) return [];
+    const tagged = skillsByMember.get(dm.id) ?? new Set<string>();
+    return deptRoles.filter(r => r.department_id === selDept && tagged.has(r.id));
+  }, [selDept, selUser, deptMembers, skillsByMember, deptRoles]);
 
   const serviceDays = useMemo(() => {
     return services.map(s => {
@@ -268,8 +322,11 @@ const Gerenciar = () => {
 
   const addAssignment = async () => {
     if (!selService || !selDept || !selUser) return toast.error("Preencha culto, departamento e voluntário");
-    const taken = usersTakenInService.get(selService);
-    if (taken?.has(selUser)) return toast.error("Pessoa já escalada nesse culto em outro departamento");
+    if (selDeptRoles.length > 0 && !selRole) return toast.error("Selecione a função da pessoa");
+    const selDate = serviceDateMap.get(selService);
+    if (selDate && usersTakenOnDate.get(selDate)?.has(selUser)) {
+      return toast.error("Pessoa já escalada em outro culto nesta mesma data");
+    }
     const { error } = await supabase.from("assignments").insert({
       service_id: selService, department_id: selDept, user_id: selUser, role: selRole || null,
     });
@@ -299,6 +356,38 @@ const Gerenciar = () => {
   const removeMemberFromDept = async (id: string) => {
     const { error } = await (supabase.from("department_members" as any) as any).delete().eq("id", id);
     if (error) return toast.error(error.message);
+    loadAll(churchId!);
+  };
+
+  const addDeptRole = async () => {
+    if (!roleDept || !roleName.trim()) return toast.error("Selecione o departamento e dê um nome pra função");
+    const { error } = await supabase.from("department_roles").insert({
+      department_id: roleDept, name: roleName.trim(),
+    });
+    if (error) return toast.error(error.message);
+    setRoleName("");
+    toast.success("Função adicionada");
+    loadAll(churchId!);
+  };
+
+  const removeDeptRole = async (id: string) => {
+    const { error } = await supabase.from("department_roles").delete().eq("id", id);
+    if (error) return toast.error(error.message);
+    loadAll(churchId!);
+  };
+
+  const toggleMemberSkill = async (memberId: string, roleId: string, hasSkill: boolean) => {
+    if (hasSkill) {
+      const row = memberSkills.find(ms => ms.department_member_id === memberId && ms.department_role_id === roleId);
+      if (!row) return;
+      const { error } = await supabase.from("department_member_skills").delete().eq("id", row.id);
+      if (error) return toast.error(error.message);
+    } else {
+      const { error } = await supabase.from("department_member_skills").insert({
+        department_member_id: memberId, department_role_id: roleId,
+      });
+      if (error) return toast.error(error.message);
+    }
     loadAll(churchId!);
   };
 
@@ -511,12 +600,13 @@ const Gerenciar = () => {
               <h2 className="font-bold text-lg">Escalar voluntário</h2>
             </div>
             <p className="text-xs text-muted-foreground mb-4">
-              Quem já estiver em outro departamento neste mesmo culto não aparece na lista.
+              Só aparecem pessoas do departamento escolhido, sem conflito de data. Se o departamento
+              tiver funções cadastradas, só quem já tem alguma função marcada pode ser escalado.
             </p>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-3">
               <div>
                 <Label className="text-xs">Culto</Label>
-                <Select value={selService} onValueChange={setSelService}>
+                <Select value={selService} onValueChange={(v) => { setSelService(v); setSelUser(""); setSelRole(""); }}>
                   <SelectTrigger><SelectValue placeholder="Selecione" /></SelectTrigger>
                   <SelectContent>
                     {services.map(s => (
@@ -529,7 +619,7 @@ const Gerenciar = () => {
               </div>
               <div>
                 <Label className="text-xs">Departamento</Label>
-                <Select value={selDept} onValueChange={setSelDept}>
+                <Select value={selDept} onValueChange={(v) => { setSelDept(v); setSelUser(""); setSelRole(""); }}>
                   <SelectTrigger><SelectValue placeholder="Selecione" /></SelectTrigger>
                   <SelectContent>
                     {departments.map(d => <SelectItem key={d.id} value={d.id}>{d.name}</SelectItem>)}
@@ -538,20 +628,34 @@ const Gerenciar = () => {
               </div>
               <div>
                 <Label className="text-xs">
-                  Voluntário {selService && `(${availableUsersForSelService.length} disponíveis)`}
+                  Voluntário {selDept && `(${availableUsersForSelService.length} disponíveis)`}
                 </Label>
-                <Select value={selUser} onValueChange={setSelUser}>
+                <Select value={selUser} onValueChange={(v) => { setSelUser(v); setSelRole(""); }} disabled={!selDept}>
                   <SelectTrigger><SelectValue placeholder="Selecione" /></SelectTrigger>
                   <SelectContent>
-                    {availableUsersForSelService.map(p => (
-                      <SelectItem key={p.id} value={p.id}>{p.full_name ?? "Sem nome"}</SelectItem>
+                    {availableUsersForSelService.map(({ profile }) => (
+                      <SelectItem key={profile.id} value={profile.id}>{profile.full_name ?? "Sem nome"}</SelectItem>
                     ))}
                   </SelectContent>
                 </Select>
+                {selDept && availableUsersForSelService.length === 0 && (
+                  <p className="text-[11px] text-muted-foreground mt-1">
+                    Nenhum membro disponível — confira a data escolhida ou se alguém já tem função marcada neste departamento.
+                  </p>
+                )}
               </div>
               <div>
-                <Label className="text-xs">Função (opcional)</Label>
-                <Input placeholder="Ex: Guitarra solo" value={selRole} onChange={(e) => setSelRole(e.target.value)} />
+                <Label className="text-xs">Função {selDeptRoles.length === 0 && "(opcional)"}</Label>
+                {selDeptRoles.length > 0 ? (
+                  <Select value={selRole} onValueChange={setSelRole} disabled={!selUser}>
+                    <SelectTrigger><SelectValue placeholder={selUser ? "Selecione" : "Selecione o voluntário primeiro"} /></SelectTrigger>
+                    <SelectContent>
+                      {selUserRoleOptions.map(r => <SelectItem key={r.id} value={r.name}>{r.name}</SelectItem>)}
+                    </SelectContent>
+                  </Select>
+                ) : (
+                  <Input placeholder="Ex: Guitarra solo" value={selRole} onChange={(e) => setSelRole(e.target.value)} />
+                )}
               </div>
             </div>
             <Button onClick={addAssignment} className="bg-gradient-primary w-full sm:w-auto">
@@ -801,6 +905,7 @@ const Gerenciar = () => {
             </div>
             <p className="text-xs text-muted-foreground mb-4">
               Adicione voluntários aos departamentos. Só quem está num departamento entra na escala automática dele.
+              Clique numa pessoa pra marcar quais funções ela sabe fazer.
             </p>
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 mb-3">
               <Select value={memberDept} onValueChange={setMemberDept}>
@@ -831,11 +936,66 @@ const Gerenciar = () => {
                     {members.length === 0 ? (
                       <p className="text-xs text-muted-foreground">Sem membros</p>
                     ) : (
+                      <div className="space-y-1">
+                        {members.map(dm => {
+                          const skillCount = skillsByMember.get(dm.id)?.size ?? 0;
+                          return (
+                            <button
+                              key={dm.id}
+                              onClick={() => setManagingMember(dm)}
+                              className="w-full flex items-center justify-between gap-2 rounded-lg px-3 py-2 text-sm hover:bg-muted/60 transition-colors text-left"
+                            >
+                              <span className="font-medium truncate">{profileMap.get(dm.user_id) ?? "—"}</span>
+                              <span className="flex items-center gap-1.5 text-xs text-muted-foreground shrink-0">
+                                {skillCount > 0 && <Badge variant="secondary" className="text-[10px]">{skillCount} função{skillCount !== 1 ? "ões" : ""}</Badge>}
+                                <ChevronRight className="w-4 h-4" />
+                              </span>
+                            </button>
+                          );
+                        })}
+                      </div>
+                    )}
+                  </div>
+                );
+              })}
+            </div>
+          </Card>
+
+          <Card className="p-5 animate-slide-up">
+            <div className="flex items-center gap-2 mb-2">
+              <UserCog className="w-5 h-5 text-primary" />
+              <h2 className="font-bold text-lg">Funções do departamento</h2>
+            </div>
+            <p className="text-xs text-muted-foreground mb-4">
+              Cadastre os cargos de cada departamento (ex: Guitarrista, Baterista, Vocal). Eles aparecem pra escolher na hora de escalar alguém.
+            </p>
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 mb-3">
+              <Select value={roleDept} onValueChange={setRoleDept}>
+                <SelectTrigger><SelectValue placeholder="Departamento" /></SelectTrigger>
+                <SelectContent>
+                  {departments.map(d => <SelectItem key={d.id} value={d.id}>{d.name}</SelectItem>)}
+                </SelectContent>
+              </Select>
+              <Input placeholder="Ex: Guitarrista" value={roleName} onChange={(e) => setRoleName(e.target.value)} onKeyDown={(e) => e.key === "Enter" && addDeptRole()} />
+              <Button onClick={addDeptRole}><Plus className="w-4 h-4 mr-2" /> Adicionar</Button>
+            </div>
+            <div className="space-y-3 mt-4">
+              {departments.map(d => {
+                const roles = deptRoles.filter(r => r.department_id === d.id);
+                return (
+                  <div key={d.id} className="border rounded-xl p-3">
+                    <div className="flex items-center justify-between mb-2">
+                      <p className="font-semibold">{d.name}</p>
+                      <Badge variant="secondary">{roles.length}</Badge>
+                    </div>
+                    {roles.length === 0 ? (
+                      <p className="text-xs text-muted-foreground">Nenhuma função cadastrada ainda</p>
+                    ) : (
                       <div className="flex flex-wrap gap-1.5">
-                        {members.map(dm => (
-                          <Badge key={dm.id} variant="outline" className="text-xs gap-1.5 pr-1">
-                            {profileMap.get(dm.user_id) ?? "—"}
-                            <button onClick={() => removeMemberFromDept(dm.id)} className="hover:text-destructive">
+                        {roles.map(r => (
+                          <Badge key={r.id} variant="outline" className="text-xs gap-1.5 pr-1">
+                            {r.name}
+                            <button onClick={() => removeDeptRole(r.id)} className="hover:text-destructive">
                               <Trash2 className="w-3 h-3" />
                             </button>
                           </Badge>
@@ -1004,6 +1164,56 @@ const Gerenciar = () => {
           </Card>
         </TabsContent>
       </Tabs>
+
+      <Dialog open={!!managingMember} onOpenChange={(open) => !open && setManagingMember(null)}>
+        <DialogContent>
+          {managingMember && (() => {
+            const member = managingMember;
+            const roles = deptRoles.filter(r => r.department_id === member.department_id);
+            const tagged = skillsByMember.get(member.id) ?? new Set<string>();
+            return (
+              <>
+                <DialogHeader>
+                  <DialogTitle>Gerenciar membro</DialogTitle>
+                </DialogHeader>
+                <div>
+                  <p className="font-semibold">{profileMap.get(member.user_id) ?? "—"}</p>
+                  <p className="text-xs text-muted-foreground">{deptMap.get(member.department_id) ?? "—"}</p>
+                </div>
+                {roles.length > 0 ? (
+                  <div className="space-y-2">
+                    <Label className="text-xs">Funções que essa pessoa sabe fazer</Label>
+                    <div className="space-y-2">
+                      {roles.map(r => {
+                        const has = tagged.has(r.id);
+                        return (
+                          <label key={r.id} className="flex items-center gap-2.5 rounded-lg border border-border p-2.5 text-sm cursor-pointer">
+                            <Checkbox checked={has} onCheckedChange={() => toggleMemberSkill(member.id, r.id, has)} />
+                            {r.name}
+                          </label>
+                        );
+                      })}
+                    </div>
+                  </div>
+                ) : (
+                  <p className="text-xs text-muted-foreground">
+                    Este departamento ainda não tem funções cadastradas (aba Pessoas &gt; Funções do departamento).
+                  </p>
+                )}
+                <DialogFooter>
+                  <Button
+                    variant="outline"
+                    className="text-destructive border-destructive/20 hover:bg-destructive/10"
+                    onClick={() => { removeMemberFromDept(member.id); setManagingMember(null); }}
+                  >
+                    <Trash2 className="w-4 h-4 mr-2" /> Remover do departamento
+                  </Button>
+                </DialogFooter>
+              </>
+            );
+          })()}
+        </DialogContent>
+      </Dialog>
     </AppLayout>
   );
 };

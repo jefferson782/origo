@@ -61,7 +61,8 @@ const MinhaEscala = () => {
     load();
   };
 
-  const upcoming = assignments.filter(a => a.services && new Date(a.services.service_date) >= new Date(new Date().toDateString()));
+  const todayIso = new Date().toISOString().slice(0, 10);
+  const upcoming = assignments.filter(a => a.services && a.services.service_date >= todayIso);
 
   const statusBadge = (s: string) => {
     if (s === "confirmed") return <span className="text-xs px-2 py-0.5 rounded-full bg-success/10 text-success font-semibold">Confirmado</span>;
